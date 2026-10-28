@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>汽车配件</title>
+<style>
+
+:root{
+  --maxw:640px;              /* 页面容器最大宽度：手机 640，平板/电脑由媒体查询放大 */
+  --primary:#1B4B9B;
+  --primary-dark:#0E2A5C;
+  --primary-light:#E8EFFA;
+  --accent:#FF5A1F;          /* 促销橙 */
+  --bg:#F2F4F8;
+  --card:#fff;
+  --text:#222;
+  --sub:#8a8f99;
+  --border:#EAEAEF;
+  --red:#e6382b;
+  --gold:#F5C518;
+  --header-h:52px;
+  --tabbar-h:56px;
+  --radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--text);
+  padding-top:var(--header-h);
+  padding-bottom:var(--tabbar-h);
+  max-width:var(--maxw);margin:0 auto;
+  box-shadow:0 0 30px rgba(0,0,0,.1);
+  min-height:100vh;
+}
+a{text-decoration:none;color:inherit;cursor:pointer}
+button{cursor:pointer;font-family:inherit}
+img{display:block}
+::-webkit-scrollbar{width:0;height:0}
+
+/* ============ 顶部导航 ============ */
+.topbar{
+  position:fixed;top:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:var(--maxw);height:var(--header-h);
+  background:var(--primary-dark);
+  display:flex;align-items:center;gap:10px;
+  padding:0 14px;z-index:100;
+}
+.topbar .logo{
+  width:34px;height:34px;border-radius:8px;
+  background:var(--gold);color:var(--primary-dark);
+  font-weight:bold;font-size:17px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.topbar .tbox{flex:1;min-width:0}
+.topbar .title{color:#fff;font-size:16px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .sub{color:rgba(255,255,255,.65);font-size:11px}
+.topbar .search{
+  flex-shrink:0;width:96px;height:32px;border-radius:16px;
+  background:rgba(255,255,255,.15);color:#fff;
+  font-size:12px;display:flex;align-items:center;justify-content:center;gap:4px;
+}
+
+/* ============ 底部 TabBar ============ */
+.tabbar{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:var(--maxw);height:var(--tabbar-h);
+  background:#fff;border-top:1px solid var(--border);
+  display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);
+}
+.tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;font-size:11px;color:#8a8f99;position:relative;
+}
+.tab .ic{font-size:21px;line-height:1}
+.tab.on{color:var(--primary);font-weight:bold}
+.tab .badge{
+  position:absolute;top:4px;left:56%;
+  min-width:16px;height:16px;padding:0 4px;
+  background:var(--red);color:#fff;border-radius:8px;
+  font-size:10px;display:none;align-items:center;justify-content:center;
+}
+
+/* ============ 页面容器 ============ */
+.page{display:none}
+.page.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ================================================================
+   占位块（★ 图片 / 视频 / 活动图统一用此类 div 占位，后续自行替换）
+   用法：
+   1. 图片占位 → 换成 <img src="你的图片.jpg" style="width:100%;height:100%;object-fit:cover">
+   2. 视频占位 → 换成 <video src="你的视频.mp4" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover">
+   ================================================================ */
+.ph{
+  width:100%;height:100%;
+  background:linear-gradient(135deg,#123A78 0%,#1B4B9B 55%,#2E63C4 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.9);gap:8px;
+}
+.ph .ph-ic{font-size:30px;opacity:.9}
+.ph .ph-t{font-size:13px;font-weight:bold;letter-spacing:1px}
+.ph .ph-d{font-size:10px;opacity:.65}
+.ph.light{background:linear-gradient(135deg,#3D77D8 0%,#5E93E8 100%)}
+.ph.orange{background:linear-gradient(135deg,#E8481F 0%,#FF7A3C 100%)}
+.ph.gold{background:linear-gradient(135deg,#B8860B 0%,#F5C518 100%);color:#3D2B00}
+.ph.gold .ph-t,.ph.gold .ph-d{color:#3D2B00}
+
+/* ============ 首页：Banner 轮播（占位自动循环） ============ */
+.banner{position:relative;height:190px;margin:12px;border-radius:var(--radius);overflow:hidden}
+.banner .slide{position:absolute;inset:0;opacity:0;transition:opacity .6s;pointer-events:none}
+.banner .slide.on{opacity:1;pointer-events:auto}
+.banner .cap{
+  position:absolute;left:0;right:0;bottom:0;
+  padding:30px 16px 12px;color:#fff;
+  background:linear-gradient(transparent,rgba(0,0,0,.55));
+}
+.banner .cap h2{font-size:19px;margin-bottom:3px}
+.banner .cap p{font-size:12px;opacity:.85}
+.banner .dots{position:absolute;right:14px;bottom:14px;display:flex;gap:5px}
+.banner .dots i{width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.5);cursor:pointer;transition:.3s}
+.banner .dots i.on{background:#fff;width:18px}
+
+/* ============ 快捷分类宫格 ============ */
+.cate-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:0 12px}
+.cate-cell{
+  background:var(--card);border-radius:var(--radius);
+  padding:13px 4px;text-align:center;font-size:12px;color:#444;
+  box-shadow:0 1px 4px rgba(20,40,90,.05);
+}
+.cate-cell .ci{
+  width:40px;height:40px;margin:0 auto 6px;border-radius:10px;
+  background:var(--primary-light);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+}
+
+/* ============ 活动区（模板同款） ============ */
+.act-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:0 12px}
+.act-cell{
+  height:88px;border-radius:var(--radius);overflow:hidden;position:relative;
+  cursor:pointer;
+}
+.act-cell .act-txt{
+  position:absolute;left:12px;top:14px;color:#fff;
+}
+.act-cell .act-txt b{display:block;font-size:15px;margin-bottom:4px}
+.act-cell .act-txt span{font-size:11px;opacity:.85}
+.act-cell .act-ic{
+  position:absolute;right:8px;bottom:6px;font-size:34px;opacity:.35;
+}
+.coupon-bar{
+  margin:0 12px;display:flex;gap:9px;
+}
+.coupon{
+  flex:1;background:var(--card);border-radius:10px;
+  padding:10px 6px;text-align:center;
+  border:1px dashed var(--accent);
+}
+.coupon .amt{color:var(--accent);font-size:17px;font-weight:bold}
+.coupon .amt small{font-size:11px}
+.coupon .cond{font-size:10px;color:var(--sub);margin-top:2px}
+.coupon .get{
+  margin-top:6px;font-size:10px;color:#fff;background:var(--accent);
+  border:none;border-radius:9px;padding:3px 12px;
+}
+
+/* ============ 会员横条 ============ */
+.vip-bar{
+  margin:12px;border-radius:var(--radius);
+  background:linear-gradient(90deg,#2B2B33,#4A4A55);
+  color:#F5D890;padding:12px 14px;
+  display:flex;align-items:center;gap:8px;font-size:13px;
+}
+.vip-bar .go{margin-left:auto;color:#fff;font-weight:bold;font-size:12px}
+
+/* ============ 区块标题 ============ */
+.sec{display:flex;align-items:center;justify-content:space-between;margin:16px 12px 10px}
+.sec h3{font-size:17px;padding-left:8px;border-left:4px solid var(--primary)}
+.sec a{font-size:12px;color:var(--sub)}
+
+/* ============ 产品卡片（左图右文） ============ */
+.plist{padding:0 12px}
+.pcard{
+  display:flex;background:var(--card);
+  border-radius:var(--radius);overflow:hidden;
+  margin-bottom:10px;position:relative;
+  box-shadow:0 1px 6px rgba(20,40,90,.05);
+}
+.pcard .cover{width:118px;height:118px;flex-shrink:0;overflow:hidden}
+.pcard .cover .ph .ph-ic{font-size:24px}
+.pcard .info{flex:1;min-width:0;padding:10px 12px;display:flex;flex-direction:column}
+.pcard .tag{font-size:10px;color:var(--accent);font-weight:bold;margin-bottom:3px}
+.pcard .name{
+  font-size:13.5px;font-weight:bold;line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.pcard .brief{font-size:11px;color:var(--sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcard .bottom{margin-top:auto;display:flex;align-items:baseline;justify-content:space-between}
+.pcard .price{color:var(--accent);font-size:18px;font-weight:bold}
+.pcard .price small{font-size:12px}
+.pcard .price del{color:#bbb;font-size:11px;font-weight:normal;margin-left:4px}
+.pcard .cat{font-size:10px;color:var(--primary);background:var(--primary-light);padding:2px 8px;border-radius:6px}
+.fav-btn{
+  position:absolute;top:10px;right:10px;
+  width:30px;height:30px;border:none;border-radius:50%;
+  background:rgba(255,255,255,.92);color:#ccc;font-size:16px;
+  box-shadow:0 1px 5px rgba(0,0,0,.15);line-height:1;transition:transform .2s;
+}
+.fav-btn.faved{color:var(--red)}
+.fav-btn:active{transform:scale(1.15)}
+
+/* ============ 产品页（左右布局：左侧分类栏 + 右侧产品列表） ============ */
+.pl-layout{display:flex;align-items:stretch}
+/* 左侧竖向分类栏 */
+.cate-side{
+  width:96px;flex-shrink:0;
+  background:#fff;
+  position:sticky;top:var(--header-h);
+  height:calc(100vh - var(--header-h) - var(--tabbar-h));
+  overflow-y:auto;
+  border-right:1px solid var(--border);
+}
+.cate-side .cs-item{
+  display:block;padding:15px 6px;text-align:center;
+  font-size:12.5px;color:#555;cursor:pointer;
+  border-left:3px solid transparent;
+  border-bottom:1px solid var(--bg);
+}
+.cate-side .cs-item .cnt{display:block;font-size:10px;color:#c0c4cc;margin-top:2px}
+.cate-side .cs-item.on{
+  color:var(--primary);font-weight:bold;
+  background:var(--bg);
+  border-left-color:var(--primary);
+}
+/* 右侧产品区 */
+.pl-right{flex:1;min-width:0;padding:10px}
+/* 品牌 Logo 条：占位块，后续换成 <img> */
+.brand-strip{
+  display:flex;gap:8px;align-items:center;
+  background:var(--card);
+  padding:10px;overflow-x:auto;
+  border-bottom:1px solid var(--border);
+  border-radius:var(--radius) var(--radius) 0 0;
+}
+.brand-strip .blogo{
+  flex-shrink:0;width:74px;height:40px;border-radius:8px;
+  border:1px solid var(--border);
+  background:#F7F9FC;color:var(--primary);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:bold;
+}
+.brand-strip .blogo.ph2{background:var(--primary-light);color:var(--primary)}
+/* 搜索框 */
+.psearch{
+  margin:10px 0;height:34px;border-radius:17px;
+  background:#fff;border:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;padding:0 12px;
+}
+.psearch input{
+  flex:1;border:none;outline:none;font-size:12.5px;background:transparent;height:100%;
+  min-width:0;
+}
+.psearch .ps-ic{font-size:13px;color:#bbb;flex-shrink:0}
+/* 单列产品行卡片 */
+.p-row{
+  display:flex;background:var(--card);
+  border-radius:var(--radius);overflow:hidden;
+  margin-bottom:9px;position:relative;
+  box-shadow:0 1px 5px rgba(20,40,90,.05);
+}
+.p-row .cover{width:104px;height:104px;flex-shrink:0;overflow:hidden}
+.p-row .info{flex:1;min-width:0;padding:8px 8px 8px 10px;display:flex;flex-direction:column}
+.p-row .name{
+  font-size:12.5px;font-weight:bold;line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.p-row .tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.p-row .tg{
+  font-size:9px;color:var(--accent);
+  border:1px solid var(--accent);border-radius:4px;
+  padding:1px 4px;line-height:1.5;
+}
+.p-row .tg.blue{color:var(--primary);border-color:var(--primary)}
+.p-row .bottom{
+  margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;
+}
+.p-row .price{color:var(--accent);font-size:18px;font-weight:bold;line-height:1}
+.p-row .price small{font-size:11px}
+.p-row .price del{color:#bbb;font-size:10px;font-weight:normal;margin-left:3px}
+.p-row .ops{display:flex;gap:5px}
+.p-row .mini-btn{
+  font-size:10px;color:#666;
+  border:1px solid #ddd;border-radius:12px;
+  background:#fff;padding:4px 9px;line-height:1;white-space:nowrap;
+}
+.p-row .mini-btn.primary{color:#fff;background:var(--accent);border-color:var(--accent)}
+.fav-btn{
+  position:absolute;top:8px;right:8px;
+  width:28px;height:28px;border:none;border-radius:50%;
+  background:rgba(255,255,255,.92);color:#ccc;font-size:15px;
+  box-shadow:0 1px 5px rgba(0,0,0,.15);line-height:1;transition:transform .2s;
+}
+.fav-btn.faved{color:var(--red)}
+.fav-btn:active{transform:scale(1.15)}
+.result-tip{text-align:center;font-size:11px;color:#bbb;padding:8px 0}
+/* ================================================================
+   多端适配（手机 / 平板 / iPad / 电脑）
+   ================================================================ */
+/* 小屏手机：默认样式，个别细节微调 */
+@media (max-width:380px){
+  .cate-side{width:82px}
+  .p-row .cover{width:92px;height:92px}
+}
+
+/* ===== 平板 / iPad 竖屏（≥768px）：容器加宽，产品列表变两列 ===== */
+@media (min-width:768px){
+  :root{--maxw:1000px}
+  body{font-size:15px}
+  .topbar{padding:0 20px}
+  .topbar .logo{width:40px;height:40px;font-size:20px}
+  .topbar .title{font-size:18px}
+  .banner{height:300px;margin:16px}
+  .cate-grid{gap:12px;margin:0 16px}
+  .cate-cell{padding:18px 4px;font-size:13px}
+  .cate-cell .ci{width:48px;height:48px;font-size:26px}
+  .coupon-bar,.act-grid{margin:0 16px}
+  .act-cell{height:110px}
+  .plist,#productList{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+    padding:0 16px;
+  }
+  .p-row{margin-bottom:0;display:block}          /* 两列/三列时卡片改为上图下文 */
+  .p-row .cover{width:100%;height:160px}          /* 两列时图片改为横幅大图 */
+  .p-row .name{-webkit-line-clamp:2;font-size:14px}
+  .p-row .info{padding:10px 12px;min-height:118px}
+  .p-row .price{font-size:20px}
+  .p-row .fav-btn{top:10px;right:10px;width:32px;height:32px;font-size:17px}
+  .pl-right{padding:14px 16px}
+  .me-stats .st b{font-size:21px}
+  .me-card{margin:0 16px 14px}
+  .sec{margin:18px 16px 12px}
+  .sec h3{font-size:19px}
+}
+
+/* ===== 电脑 / iPad 横屏（≥1024px）：三列，Banner 更高 ===== */
+@media (min-width:1024px){
+  :root{--maxw:1240px}
+  .banner{height:380px;margin:20px;border-radius:16px}
+  .banner .cap h2{font-size:26px}
+  .banner .cap p{font-size:14px}
+  .plist,#productList{grid-template-columns:repeat(3,1fr);padding:0 20px}
+  .p-row .cover{height:180px}
+  .cate-side{width:120px}
+  .cate-side .cs-item{font-size:13.5px;padding:17px 6px}
+  .psearch{height:40px;border-radius:20px}
+  .psearch input{font-size:14px}
+  .me-head{padding:32px 20px 38px}
+  .me-head .avatar{width:74px;height:74px;font-size:32px}
+  .act-cell{height:130px}
+  .order-grid{padding:22px 8px}
+  .order-grid .og{font-size:12px}
+  .order-grid .og .oi{font-size:28px}
+  .menu-item{padding:16px 18px;font-size:15px}
+  .p-row:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(20,40,90,.12);transition:.2s}
+  .tab:hover{color:var(--primary)}
+}
+/* ===== 超宽屏（≥1400px） ===== */
+@media (min-width:1400px){
+  :root{--maxw:1360px}
+}
+
+/* ============ 收藏页 ============ */
+.empty{text-align:center;padding:70px 0;color:var(--sub)}
+.empty .eic{font-size:46px;margin-bottom:12px}
+.empty p{font-size:14px;margin-bottom:8px}
+.empty a{color:var(--primary);font-size:13px}
+
+/* ============ 个人中心 ============ */
+.me-head{
+  background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary) 60%,#3D77D8 100%);
+  padding:24px 16px 30px;color:#fff;
+  display:flex;align-items:center;gap:14px;
+}
+.me-head .avatar{
+  width:62px;height:62px;border-radius:50%;
+  background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.55);
+  display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;
+}
+.me-head .who{flex:1;min-width:0}
+.me-head .who .nm{font-size:19px;font-weight:bold;margin-bottom:6px}
+.me-head .who .vip{
+  display:inline-block;font-size:10px;color:#5A3E00;
+  background:linear-gradient(90deg,#F5D890,#E9B84C);
+  padding:3px 10px;border-radius:10px;font-weight:bold;
+}
+.me-head .ops{display:flex;gap:18px}
+.me-head .op{display:flex;flex-direction:column;align-items:center;font-size:11px;gap:3px}
+.me-head .op .oi{font-size:20px}
+.me-vipbar{
+  margin:-16px 12px 0;position:relative;z-index:2;
+  background:#23252E;color:#F5D890;
+  border-radius:10px 10px 0 0;
+  padding:11px 14px;font-size:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.me-vipbar .go{margin-left:auto;color:#fff;font-weight:bold}
+.me-stats{
+  background:var(--card);border-radius:0 0 10px 10px;
+  margin:0 12px 12px;display:flex;padding:16px 0;
+}
+.me-stats .st{flex:1;text-align:center;font-size:11px;color:var(--sub);cursor:pointer}
+.me-stats .st b{display:block;font-size:18px;color:var(--text);margin-bottom:4px}
+.me-stats .st b.money{color:var(--accent)}
+.me-card{background:var(--card);border-radius:var(--radius);margin:0 12px 12px;overflow:hidden}
+.me-card .hd{
+  padding:14px;font-size:15px;font-weight:bold;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:baseline;
+}
+.me-card .hd a{margin-left:auto;font-size:12px;color:var(--sub);font-weight:normal}
+.order-grid{display:grid;grid-template-columns:repeat(5,1fr);padding:16px 4px}
+.order-grid .og{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:11px;color:#666;cursor:pointer}
+.order-grid .og .oi{font-size:24px}
+.menu-item{
+  display:flex;align-items:center;gap:12px;
+  padding:15px 14px;font-size:14px;
+  border-bottom:1px solid var(--border);cursor:pointer;
+}
+.menu-item:last-child{border-bottom:none}
+.menu-item .mi{font-size:18px;width:22px;text-align:center}
+.menu-item .arrow{margin-left:auto;color:#ccc}
+.menu-item.off{color:#bbb}
+
+/* ============ 详情弹层 ============ */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none}
+.mask.on{display:block}
+.sheet{
+  position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);
+  width:100%;max-width:var(--maxw);height:88vh;
+  background:var(--bg);border-radius:16px 16px 0 0;
+  z-index:201;transition:transform .3s ease;
+  display:flex;flex-direction:column;
+}
+.sheet.on{transform:translate(-50%,0)}
+.sheet .sheet-head{
+  background:var(--primary-dark);color:#fff;
+  padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.sheet .sheet-head .bk{font-size:20px;cursor:pointer}
+.sheet .sheet-head b{font-size:15px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sheet .sheet-body{flex:1;overflow-y:auto;padding:14px}
+.d-card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.d-card h3{font-size:15px;margin-bottom:12px;padding-left:8px;border-left:3px solid var(--primary)}
+.d-price-row{display:flex;align-items:center;gap:10px;margin:8px 0}
+.d-price-big{color:var(--accent);font-size:26px;font-weight:bold}
+.d-cat-tag{font-size:11px;color:var(--primary);background:var(--primary-light);padding:3px 10px;border-radius:8px}
+.d-brief{color:#777;font-size:13px}
+.spec-row{display:flex;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.spec-row:last-child{border:none}
+.spec-row .lb{width:100px;color:var(--sub);flex-shrink:0}
+.d-detail{font-size:14px;line-height:1.9;color:#555}
+.d-acts{display:flex;gap:10px}
+.btn{flex:1;height:44px;border:none;border-radius:22px;font-size:14px}
+.btn-ghost{background:var(--card);border:1.5px solid var(--primary);color:var(--primary)}
+.btn-primary{background:var(--primary);color:#fff}
+.g-thumbs{display:flex;gap:8px;overflow-x:auto;margin-top:10px}
+.g-thumbs .gt{
+  width:58px;height:58px;border-radius:8px;flex-shrink:0;overflow:hidden;
+  border:2px solid transparent;opacity:.7;cursor:pointer;
+}
+.g-thumbs .gt.on{border-color:var(--primary);opacity:1}
+
+/* ============ Toast ============ */
+#toast{
+  position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);
+  background:rgba(0,0,0,.8);color:#fff;padding:9px 20px;border-radius:20px;
+  font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:300;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ==================== 顶部导航 ==================== -->
+<header class="topbar">
+  <span class="logo">123</span>
+  <div class="tbox">
+    <div class="title" id="topTitle">汽车配件</div>
+    <div class="sub">原厂品质 · 正品保障</div>
+  </div>
+  <a class="search" onclick="goPage('products')">🔍 搜索配件</a>
+</header>
+
+<!-- ==================== 页面 1：首页 ==================== -->
+<main class="page on" id="page-index">
+
+  <!-- Banner 轮播：占位块自动循环（★ 替换处 1：把 slide 内的 .ph 换成 img/video） -->
+  <div class="banner" id="banner"></div>
+
+  <!-- 快捷分类 -->
+  <div class="cate-grid" id="cateGrid"></div>
+
+  <!-- 优惠券 -->
+  <div class="sec"><h3>领券中心</h3></div>
+  <div class="coupon-bar">
+    <div class="coupon"><div class="amt"><small>¥</small>20</div><div class="cond">满 199 可用</div><button class="get" onclick="toast('已领取 ¥20 优惠券')">领取</button></div>
+    <div class="coupon"><div class="amt"><small>¥</small>50</div><div class="cond">满 499 可用</div><button class="get" onclick="toast('已领取 ¥50 优惠券')">领取</button></div>
+    <div class="coupon"><div class="amt"><small>¥</small>100</div><div class="cond">满 999 可用</div><button class="get" onclick="toast('已领取 ¥100 优惠券')">领取</button></div>
+  </div>
+
+  <!-- 活动区（模板同款双列活动位；★ 替换处 2） -->
+  <div class="sec"><h3>活动专区</h3></div>
+  <div class="act-grid">
+    <a class="act-cell" onclick="toast('活动详情开发中')">
+      <div class="ph orange"><span class="ph-ic">🔥</span><span class="ph-t">限时秒杀</span><span class="ph-d">活动图占位 · 后续上传</span></div>
+      <div class="act-txt"><b>限时秒杀</b><span>机油滤芯 5 折起</span></div><div class="act-ic">⏰</div>
+    </a>
+    <a class="act-cell" onclick="toast('活动详情开发中')">
+      <div class="ph light"><span class="ph-ic">🚗</span><span class="ph-t">保养套餐</span><span class="ph-d">活动图占位 · 后续上传</span></div>
+      <div class="act-txt"><b>保养套餐</b><span>小保养低至 ¥299</span></div><div class="act-ic">🛠️</div>
+    </a>
+  </div>
+
+  <!-- 会员横条 -->
+  <a class="vip-bar" onclick="goPage('me')">👑 成为会员，享配件专享价与优先发货 <span class="go">立即注册 ›</span></a>
+
+  <!-- 会员抽奖区（模板同款；★ 替换处 3） -->
+  <div class="sec"><h3>会员抽奖区</h3></div>
+  <a style="display:block;margin:0 12px;height:120px;border-radius:var(--radius);overflow:hidden;position:relative" onclick="toast('抽奖功能开发中')">
+    <div class="ph gold"><span class="ph-ic">🎁</span><span class="ph-t">下单抽奖 · 100% 中奖</span><span class="ph-d">抽奖区背景图占位 · 后续上传</span></div>
+    <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:#fff;color:#B8860B;font-weight:bold;font-size:13px;padding:8px 16px;border-radius:18px">去抽奖</div>
+  </a>
+
+  <!-- 热销产品（★ 数据在下方 PRODUCTS 中替换） -->
+  <div class="sec"><h3>热销配件</h3><a onclick="goPage('products')">查看全部 ›</a></div>
+  <div class="plist" id="hotList"></div>
+  <div style="height:12px"></div>
+</main>
+
+<!-- ==================== 页面 2：产品分类（左右布局） ==================== -->
+<main class="page" id="page-products">
+  <div class="pl-layout">
+    <!-- 左侧竖向分类栏（分类+数量） -->
+    <aside class="cate-side" id="cateSide"></aside>
+
+    <!-- 右侧：品牌条 + 搜索 + 产品列表 -->
+    <section class="pl-right">
+      <div class="brand-strip" id="brandStrip"></div>
+      <div class="psearch">
+        <span class="ps-ic">🔍</span>
+        <input id="kwInput" placeholder="搜索名称 / 车型 / 品牌" oninput="onKwInput(this.value)">
+      </div>
+      <div class="result-tip" id="resultTip"></div>
+      <div id="productList"></div>
+      <div style="height:12px"></div>
+    </section>
+  </div>
+</main>
+
+<!-- ==================== 页面 3：收藏 ==================== -->
+<main class="page" id="page-fav">
+  <div class="sec"><h3>我的收藏</h3></div>
+  <div class="plist" id="favList"></div>
+</main>
+
+<!-- ==================== 页面 4：个人中心 ==================== -->
+<main class="page" id="page-me">
+  <div class="me-head">
+    <div class="avatar">👤</div>
+    <div class="who">
+      <div class="nm">Hi，亲爱的车主</div>
+      <span class="vip">💎 会员中心</span>
+    </div>
+    <div class="ops">
+      <a class="op" onclick="toast('签到功能开发中')"><span class="oi">📅</span>签到</a>
+      <a class="op" onclick="toast('会员码开发中')"><span class="oi">▣</span>会员码</a>
+    </div>
+  </div>
+  <div class="me-vipbar">👑 成为会员，享 4 大会员专享权益 <span class="go" onclick="toast('注册功能开发中')">立即注册 ›</span></div>
+
+  <div class="me-stats">
+    <a class="st" onclick="toast('钱包开发中')"><b class="money">0.00</b>余额</a>
+    <a class="st" onclick="toast('积分开发中')"><b>0</b>积分</a>
+    <a class="st" onclick="toast('权益卡开发中')"><b>0</b>权益卡</a>
+    <a class="st" onclick="toast('优惠券开发中')"><b>0</b>优惠券码</a>
+    <a class="st" onclick="toast('钱包开发中')"><b>💰</b>钱包</a>
+  </div>
+
+  <div class="me-card">
+    <div class="hd">我的订单 <a onclick="toast('订单功能开发中')">查看全部订单 ›</a></div>
+    <div class="order-grid">
+      <a class="og" onclick="toast('待付款开发中')"><span class="oi">💳</span>待付款</a>
+      <a class="og" onclick="toast('待发货开发中')"><span class="oi">🚚</span>待发货</a>
+      <a class="og" onclick="toast('待收货开发中')"><span class="oi">📦</span>待收货</a>
+      <a class="og" onclick="toast('待评价开发中')"><span class="oi">✏️</span>待评价</a>
+      <a class="og" onclick="toast('售后开发中')"><span class="oi">↩️</span>退款/售后</a>
+    </div>
+  </div>
+
+  <div class="me-card">
+    <a class="menu-item" onclick="goPage('fav')"><span class="mi">♥</span>我的收藏<span class="arrow">›</span></a>
+    <a class="menu-item off" onclick="toast('任务中心开发中')"><span class="mi">🧾</span>任务中心（开发中）<span class="arrow">›</span></a>
+    <a class="menu-item off" onclick="toast('收货地址开发中')"><span class="mi">📍</span>收货地址<span class="arrow">›</span></a>
+    <a class="menu-item" onclick="toast('客服电话：'+BRAND.phone)"><span class="mi">💬</span>客服聊天<span class="arrow">›</span></a>
+    <a class="menu-item off" onclick="toast('购物车开发中')"><span class="mi">🛒</span>购物车<span class="arrow">›</span></a>
+    <a class="menu-item off" onclick="toast('兑换功能开发中')"><span class="mi">🎟️</span>兑换礼品卡<span class="arrow">›</span></a>
+    <a class="menu-item off" onclick="toast('赠品功能开发中')"><span class="mi">🎁</span>赠品<span class="arrow">›</span></a>
+    <a class="menu-item off" onclick="toast('个人信息开发中')"><span class="mi">👤</span>个人信息<span class="arrow">›</span></a>
+    <a class="menu-item off" onclick="toast('账号与安全开发中')"><span class="mi">🛡</span>账号与安全<span class="arrow">›</span></a>
+  </div>
+
+  <div class="me-card">
+    <a class="menu-item" onclick="copyText(BRAND.wechat,'微信号已复制')"><span class="mi">📞</span>联系我们（微信号 jiangxin-zfparts）</a>
+    <a class="menu-item" onclick="copyText(BRAND.address,'地址已复制')"><span class="mi">🏠</span>门店：XXXXXXXXXXXXX<span class="arrow">›</span></a>
+  </div>
+  <div style="text-align:center;color:#B5ACA1;font-size:11px;padding:8px 0 16px">优选汽车配件 · 原厂品质 · 正品保障</div>
+</main>
+
+<!-- ==================== 底部 TabBar ==================== -->
+<nav class="tabbar">
+  <a class="tab on" data-page="index" onclick="goPage('index')"><span class="ic">🏠</span>首页</a>
+  <a class="tab" data-page="products" onclick="goPage('products')"><span class="ic">📋</span>分类</a>
+  <a class="tab" data-page="fav" onclick="goPage('fav')"><span class="ic">🛒</span>收藏<span class="badge" id="favBadge">0</span></a>
+  <a class="tab" data-page="me" onclick="goPage('me')"><span class="ic">😊</span>我的</a>
+</nav>
+
+<!-- ==================== 产品详情弹层 ==================== -->
+<div class="mask" id="mask" onclick="closeDetail()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-head">
+    <span class="bk" onclick="closeDetail()">‹</span><b id="dTitle">产品详情</b>
+  </div>
+  <div class="sheet-body" id="dBody"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==================================================================
+   数据区
+   【图片/视频替换说明】
+   - BANNERS：后续上传图片/视频后，把每个 slide 的占位换成
+     {type:'image', img:'img/banner1.jpg', ...} 或
+     {type:'video', video:'video/bn1.mp4', poster:'img/poster.jpg', ...}
+   - PRODUCTS 的 cover/images 同理：'img/p1.jpg'
+   ================================================================== */
+const BRAND = {
+  name:'优选汽车配件', slogan:'原厂品质 · 正品保障',
+  phone:'13800000000', wechat:'jiangxin-zfparts',
+  address:'XXXXXXXXXX地址XXXXXXXXX',
+  hours:'周一至周日 08:30 - 18:30'
+};
+
+/* 首页 Banner：type=image|video|ph，ph 为纯占位块（当前全部为占位，自动循环播放） */
+const BANNERS = [
+  { type:'ph',    style:'',      title:'双11狂欢购', subtitle:'全场汽配低至 5 折 · 满 300 减 50' },
+  { type:'ph',    style:'light', title:'大牌机油日', subtitle:'美孚 / 嘉实多 / 壳牌 领券再减 30' },
+  { type:'ph',    style:'orange',title:'限时秒杀',   subtitle:'每天 10 点开抢 · 刹车片半价' },
+  { type:'video', style:'',      title:'品牌视频位', subtitle:'视频占位 · 后续上传替换', video:'video/banner.mp4', poster:'' }
+];
+
+const PRODUCTS = [
+  {id:1,name:'【官方同款】采埃孚/ 6HP21自动变速箱油 波箱油 适合宝马奔驰',cover:'',images:['',''],category:'变速箱油',brief:'原厂认证 AT 波箱油，换挡顺滑不顿挫',price:156,old:198,hot:true,specs:[{label:'品牌',value:'采埃孚 '},{label:'规格',value:'1L / 桶'},{label:'适配',value:'宝马 奔驰 奥迪 6AT/8AT'},{label:'质保',value:'正品保证 假一赔十'}],detail:'采埃孚（）原厂自动变速箱油，专为大扭矩 6HP/8HP 系列变速箱研发，低温流动性与高温稳定性兼顾，有效减少换挡顿挫与磨损。支持提供批号溯源，正品保障。'},
+  {id:2,name:'采埃孚/ AGS 通用9HP自动变速箱油 波箱油 适配别克昂科威',cover:'',images:['',''],category:'变速箱油',brief:'通用 9AT 专用，原厂调校配方',price:67.5,old:85,hot:true,specs:[{label:'品牌',value:'采埃孚 '},{label:'规格',value:'1L / 桶'},{label:'适配',value:'别克 雪佛兰 9AT'}],detail:'针对通用 9HP 系列变速箱开发的专用油品，摩擦特性与原厂一致，换挡平顺性更佳。'},
+  {id:3,name:'采埃孚/ MT+ 手动变速箱齿轮油 75W-90 GL-4 1L',cover:'',images:['',''],category:'变速箱油',brief:'手动挡专用齿轮油，换挡清晰顺滑',price:136,old:0,hot:false,specs:[{label:'粘度',value:'75W-90 GL-4'},{label:'规格',value:'1L / 桶'}],detail:'手动变速箱专用齿轮油，极压抗磨配方，高低挡位切换清晰顺畅，四季通用。'},
+  {id:4,name:'采埃孚/ 5r+ 2F5S 自动变速箱油 大众帕萨特 迈腾 特供',cover:'',images:['',''],category:'变速箱油',brief:'大众系专用，双离合平顺之选',price:57.5,old:0,hot:false,specs:[{label:'品牌',value:'采埃孚 '},{label:'适配',value:'大众 帕萨特 迈腾'}],detail:'针对大众系双离合变速箱调校，粘温性能稳定，市区拥堵路况也能保持平顺换挡。'},
+  {id:5,name:'采埃孚/ LS 赛车级助力转向油（通用型）长效抑泡',cover:'',images:['',''],category:'油液养护',brief:'赛车级配方，转向轻盈静音',price:74,old:92,hot:false,specs:[{label:'类型',value:'助力转向油'},{label:'特点',value:'长效抑泡'}],detail:'赛车级助力转向油基础油，抑泡性能出色，高速转向稳定安静，冷启动转向轻盈。'},
+  {id:6,name:'采埃孚/ 6DCT250 双离合变速箱油 适合菲亚特',cover:'',images:['',''],category:'变速箱油',brief:'干式双离合专用，高温不衰减',price:126,old:0,hot:false,specs:[{label:'规格',value:'1L / 桶'},{label:'适配',value:'菲亚特 6DCT250'}],detail:'干式双离合变速箱专用油，高温抗氧化性能优异，长期使用换挡品质不衰减。'},
+  {id:7,name:'采埃孚/ EOM CVT 无级变速箱油波箱油',cover:'',images:['',''],category:'变速箱油',brief:'CVT 专用钢带保护配方',price:126,old:0,hot:false,specs:[{label:'类型',value:'CVT 无级变速箱油'}],detail:'CVT 专用油品，钢带防滑与保护配方，怠速安静，加速线性。'},
+  {id:8,name:'采埃孚/ JRG 日系4AT自动变速箱油丰田花冠 日产阳光 经典轩逸',cover:'',images:['',''],category:'变速箱油',brief:'日系老车福音，经典配方',price:55,old:0,hot:false,specs:[{label:'适配',value:'丰田 花冠 / 日产 阳光 轩逸'}],detail:'专为日系 4AT 老款变速箱研制，橡胶密封件兼容性好，杜绝渗漏烦恼。'},
+  {id:9,name:'采埃孚/ 7速湿式双离合变速箱油（保时捷品牌）',cover:'',images:['',''],category:'变速箱油',brief:'保时捷 PDK 认证，性能之选',price:112,old:0,hot:false,specs:[{label:'适配',value:'保时捷 PDK 7速湿式'}],detail:'保时捷 PDK 双离合变速箱认证油品，激烈驾驶下依然保持稳定的离合器响应。'},
+  {id:10,name:'采埃孚/ DCT250DQ 双离合变速箱油 适配菲亚特 菲翔致悦Ottimo',cover:'',images:['',''],category:'变速箱油',brief:'干式双离合 长效保护',price:151,old:0,hot:false,specs:[{label:'规格',value:'1L / 桶'},{label:'适配',value:'菲亚特 菲翔 致悦'}],detail:'DCT250 干式双离合专用，换挡机构与差速器一体润滑，长效保护。'},
+  {id:11,name:'SACHS 萨克斯 减振器 前减 凯越凯旋高压 前2款双筒1.5L',cover:'',images:['',''],category:'悬挂减震',brief:'德国 SACHS 萨克斯，舒适耐用',price:60,old:0,hot:false,specs:[{label:'品牌',value:'SACHS 萨克斯'},{label:'位置',value:'前减（一对）'}],detail:'SACHS 萨克斯原厂配套减振器，阻尼调校偏舒适，过坎滤震干脆，高速稳定性好。'},
+  {id:12,name:'SACHS萨克斯 减振器 后减震器 577 015 适配GL8陆尊,GL8商务',cover:'',images:['',''],category:'悬挂减震',brief:'GL8 专用后减，装载更稳',price:690,old:760,hot:true,specs:[{label:'适配',value:'别克 GL8 陆尊 / 商务'},{label:'位置',value:'后减震'}],detail:'GL8 专用后减震器，重载工况下依然保持良好支撑，舒适性不掉线。'},
+  {id:13,name:'SACHS萨克斯 减振器后减震器避震器 313 874 适配桑塔纳 志俊 4000 超越者',cover:'',images:['',''],category:'悬挂减震',brief:'桑塔纳志俊专用，经久耐用',price:509,old:0,hot:false,specs:[{label:'适配',value:'桑塔纳 志俊 4000 超越者'}],detail:'老三样经典适配型号，品质稳定，更换后操控恢复如新。'},
+  {id:14,name:'SACHS萨克斯高压前减震器 前减震器避震器 315 845 适配GL8 胖头鱼',cover:'',images:['',''],category:'悬挂减震',brief:'高压充气前减，支撑更足',price:1395,old:0,hot:false,specs:[{label:'适配',value:'别克 GL8 胖头鱼'},{label:'位置',value:'前减震（高压）'}],detail:'高压充气式前减震器，反应更迅捷，弯道侧倾抑制出色。'}
+];
+const CATEGORIES = ['全部', ...new Set(PRODUCTS.map(p=>p.category))];
+
+/* ==================================================================
+   收藏管理（localStorage，产品页/详情/收藏页共用）
+   ================================================================== */
+const Fav = {
+  KEY:'zf_fav_ids',
+  list(){ try{return JSON.parse(localStorage.getItem(this.KEY)||'[]')}catch(e){return[]} },
+  has(id){ return this.list().includes(Number(id)); },
+  toggle(id){
+    id=Number(id); let ids=this.list();
+    ids = ids.includes(id) ? ids.filter(i=>i!==id) : [id,...ids];
+    localStorage.setItem(this.KEY, JSON.stringify(ids));
+    refreshBadge(); return ids.includes(id);
+  },
+  products(){ return this.list().map(id=>PRODUCTS.find(p=>p.id===id)).filter(Boolean); }
+};
+function refreshBadge(){
+  const n=Fav.list().length, b=document.getElementById('favBadge');
+  b.textContent=n>99?'99+':n; b.style.display=n>0?'flex':'none';
+}
+
+/* ==================================================================
+   页面切换
+   ================================================================== */
+const PAGE_TITLE={index:'优选 · 汽车配件',products:'商品分类',fav:'我的收藏',me:'个人中心'};
+function goPage(key){
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='page-'+key));
+  document.querySelectorAll('.tabbar .tab').forEach(t=>t.classList.toggle('on',t.dataset.page===key));
+  document.getElementById('topTitle').textContent=PAGE_TITLE[key];
+  if(key==='fav') renderFav();
+  window.scrollTo(0,0);
+}
+
+/* ==================================================================
+   媒体渲染：根据数据生成占位块 / 图片 / 视频
+   - 有 video → <video>（无地址时回退占位）
+   - 有 img  → <img>（失败回退占位）
+   - 都没有  → 深蓝渐变占位块（ph 样式由 style 字段控制）
+   ================================================================== */
+function mediaHTML(m, cls){
+  if(m.type==='video' && m.video){
+    return `<video src="${m.video}" ${m.poster?`poster="${m.poster}"`:''} autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover"
+      onerror="this.outerHTML=window.__ph('${m.style||''}','${m.title}','视频加载失败')"></video>`;
+  }
+  if(m.img){
+    return `<img src="${m.img}" loading="lazy" style="width:100%;height:100%;object-fit:cover"
+      onerror="this.outerHTML=window.__ph('${m.style||''}','图片加载失败','')">`;
+  }
+  return phHTML(m.style, m.title, m.subtitle);
+}
+function phHTML(style, t, d){
+  return `<div class="ph ${style||''}"><span class="ph-ic">🖼️</span><span class="ph-t">${t||'图片占位'}</span><span class="ph-d">${d||'后续上传替换'}</span></div>`;
+}
+window.__ph = phHTML;
+
+/* ==================================================================
+   产品卡片（左图右文，首页热销/收藏页共用）
+   ================================================================== */
+function cardHTML(p){
+  const f=Fav.has(p.id);
+  const del = p.old && p.old>p.price ? `<del>¥${p.old}</del>` : '';
+  return `<div class="pcard">
+    <a class="cover" onclick="openDetail(${p.id})">${phHTML('','配件图','占位 · 后续上传')}</a>
+    <div class="info">
+      <span class="tag">${p.hot?'🔥 热卖爆款':'官方同款'}</span>
+      <a class="name" onclick="openDetail(${p.id})">${p.name}</a>
+      <span class="brief">${p.brief}</span>
+      <div class="bottom">
+        <span class="price"><small>¥</small>${p.price}${del}</span>
+        <span class="cat">${p.category}</span>
+      </div>
+    </div>
+    <button class="fav-btn ${f?'faved':''}" data-id="${p.id}" onclick="onFav(this)">♥</button>
+  </div>`;
+}
+function onFav(btn){
+  const f=Fav.toggle(btn.dataset.id);
+  btn.classList.toggle('faved',f);
+  toast(f?'已加入收藏 ♥':'已取消收藏');
+  renderFav();
+}
+
+/* ==================================================================
+   首页渲染
+   ================================================================== */
+let bnIdx=0,bnTimer=null;
+function renderBanner(){
+  document.getElementById('banner').innerHTML =
+    BANNERS.map((b,i)=>`<div class="slide ${i===bnIdx?'on':''}">${mediaHTML(b)}<div class="cap"><h2>${b.title}</h2><p>${b.subtitle}</p></div></div>`).join('')
+    + `<div class="dots">${BANNERS.map((_,i)=>`<i class="${i===bnIdx?'on':''}" onclick="goBanner(${i})"></i>`).join('')}</div>`;
+}
+function goBanner(i){ bnIdx=i; renderBanner(); resetBannerTimer(); }
+function resetBannerTimer(){
+  clearInterval(bnTimer);
+  bnTimer=setInterval(()=>{ bnIdx=(bnIdx+1)%BANNERS.length; renderBanner(); },4000);
+}
+const CATE_ICON={'变速箱油':'🛢️','油液养护':'🧴','悬挂减震':'🔧','刹车系统':'🛞','滤芯滤清器':'🌀'};
+document.getElementById('cateGrid').innerHTML =
+  CATEGORIES.filter(c=>c!=='全部').map(c=>
+    `<a class="cate-cell" onclick="pickCate('${c}')"><div class="ci">${CATE_ICON[c]||'📦'}</div>${c}</a>`).join('');
+document.getElementById('hotList').innerHTML =
+  PRODUCTS.filter(p=>p.hot).map(cardHTML).join('');
+
+/* ==================================================================
+   产品页渲染（左分类右产品 + 品牌 Logo 条 + 搜索）
+   ================================================================== */
+/* 品牌 Logo 条：占位，上传品牌图后换成 img */
+const BRANDS = [' 采埃孚','SACHS','LEMFÖRDER','TRW','BOGE','其他品牌'];
+document.getElementById('brandStrip').innerHTML =
+  BRANDS.map(b=>`<span class="blogo">${b}</span>`).join('');
+
+let curCate='全部', curKw='';
+/* 左侧竖向分类栏：分类名 + 数量 */
+function renderCateSide(){
+  document.getElementById('cateSide').innerHTML =
+    CATEGORIES.map(c=>{
+      const cnt = c==='全部' ? PRODUCTS.length : PRODUCTS.filter(p=>p.category===c).length;
+      return `<span class="cs-item ${c===curCate?'on':''}" onclick="pickCate('${c}')">${c}<span class="cnt">${cnt}件</span></span>`;
+    }).join('');
+}
+/* 搜索：按名称/简介/规格实时过滤（与左侧分类叠加） */
+function onKwInput(v){ curKw=v.trim().toLowerCase(); renderProducts(); }
+function renderProducts(){
+  let list = curCate==='全部' ? PRODUCTS : PRODUCTS.filter(p=>p.category===curCate);
+  if(curKw){
+    list = list.filter(p=>(p.name+' '+p.brief+' '+(p.specs.map(s=>s.value).join(' '))).toLowerCase().includes(curKw));
+  }
+  document.getElementById('resultTip').textContent = `${curCate} · 共 ${list.length} 件`;
+  document.getElementById('productList').innerHTML = list.length
+    ? list.map(rowHTML).join('')
+    : `<div class="empty"><div class="eic">🔧</div><p>没有找到相关配件</p><a onclick="document.getElementById('kwInput').value='';onKwInput('')">清除搜索 ›</a></div>`;
+}
+function pickCate(c){ curCate=c; renderCateSide(); renderProducts(); }
+
+/* 单列行卡片（模板同款）：左图 + 两行标题 + 标签行 + 价格行 + 找相似按钮 */
+function rowHTML(p){
+  const f=Fav.has(p.id);
+  const del = p.old && p.old>p.price ? `<del>¥${p.old}</del>` : '';
+  const tags = [
+    p.hot?'<span class="tg">热卖爆款</span>':'',
+    '<span class="tg blue">正品保障</span>',
+    '<span class="tg">包邮</span>',
+    p.price>300?'<span class="tg">满减券</span>':''
+  ].join('');
+  return `<div class="p-row">
+    <a class="cover" onclick="openDetail(${p.id})">${phHTML('','配件图','占位')}</a>
+    <div class="info">
+      <a class="name" onclick="openDetail(${p.id})">${p.name}</a>
+      <div class="tags">${tags}</div>
+      <div class="bottom">
+        <span class="price"><small>¥</small>${p.price}${del}</span>
+        <span class="ops">
+          <button class="mini-btn" onclick="toast('已为您记录需求，客服将推荐相似配件')">找相似</button>
+          <button class="mini-btn primary" onclick="openDetail(${p.id})">查看</button>
+        </span>
+      </div>
+    </div>
+    <button class="fav-btn ${f?'faved':''}" data-id="${p.id}" onclick="onFav(this)">♥</button>
+  </div>`;
+}
+renderCateSide(); renderProducts();
+
+/* ==================================================================
+   收藏页渲染
+   ================================================================== */
+function renderFav(){
+  const list=Fav.products();
+  document.getElementById('favList').innerHTML = list.length
+    ? list.map(cardHTML).join('')
+    : `<div class="empty"><div class="eic">🛒</div><p>还没有收藏任何配件</p><a onclick="goPage('products')">去逛逛 ›</a></div>`;
+}
+
+/* ==================================================================
+   产品详情弹层
+   ================================================================== */
+let curDetailId=null;
+function openDetail(id){
+  const p=PRODUCTS.find(x=>x.id===id); if(!p) return;
+  curDetailId=id;
+  document.getElementById('dTitle').textContent=p.name;
+  document.getElementById('dBody').innerHTML=`
+    <div class="d-card" style="padding:10px">
+      <div id="dMain" style="height:260px;border-radius:10px;overflow:hidden">${phHTML('','配件主图','占位 · 后续上传')}</div>
+      <div class="g-thumbs">
+        ${p.images.map((img,i)=>`<span class="gt ${i===0?'on':''}" onclick="switchImg(${i})">${phHTML('','图'+(i+1),'')}</span>`).join('')}
+      </div>
+    </div>
+    <div class="d-card">
+      <div style="font-size:15px;font-weight:bold;line-height:1.5">${p.name}</div>
+      <div class="d-price-row"><span class="d-price-big">¥${p.price}</span><span class="d-cat-tag">${p.category}</span></div>
+      <div class="d-brief">${p.brief}</div>
+    </div>
+    <div class="d-card">
+      <h3>规格参数</h3>
+      ${p.specs.map(s=>`<div class="spec-row"><span class="lb">${s.label}</span><span>${s.value}</span></div>`).join('')}
+    </div>
+    <div class="d-card">
+      <h3>产品详情</h3>
+      <p class="d-detail">${p.detail}</p>
+    </div>
+    <div class="d-card">
+      <div class="d-acts">
+        <button class="btn btn-ghost" id="dFav" onclick="detailFav()">♥ 收藏</button>
+        <button class="btn btn-ghost" onclick="copyText(BRAND.wechat,'微信号已复制')">复制微信号</button>
+        <button class="btn btn-primary" onclick="toast('客服电话：'+BRAND.phone)">📞 联系我们</button>
+      </div>
+    </div>`;
+  syncDetailFav();
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('sheet').classList.add('on');
+  window.scrollTo(0,0);
+}
+function switchImg(i){
+  document.querySelectorAll('.g-thumbs .gt').forEach((el,k)=>el.classList.toggle('on',k===i));
+  toast('图集占位：上传图片后此处可切换大图');
+}
+function syncDetailFav(){
+  const b=document.getElementById('dFav'); if(!b) return;
+  const f=Fav.has(curDetailId);
+  b.textContent=f?'♥ 已收藏':'♡ 收藏'; b.style.color=f?'#e74c3c':'';
+}
+function detailFav(){
+  const f=Fav.toggle(curDetailId);
+  syncDetailFav(); toast(f?'已加入收藏 ♥':'已取消收藏'); renderFav();
+}
+function closeDetail(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('sheet').classList.remove('on');
+}
+
+/* ==================================================================
+   工具
+   ================================================================== */
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),1600);
+}
+function copyText(txt,tip){
+  if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(()=>toast(tip)).catch(()=>toast(txt)); }
+  else toast(txt);
+}
+
+/* 初始化 */
+renderBanner(); resetBannerTimer(); refreshBadge();
+</script>
+</body>
+</html>
